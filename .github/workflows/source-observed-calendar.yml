@@ -3,13 +3,21 @@ on:
   push:
     paths:
       - 'scripts/render-source-observed-calendar.mjs'
+      - 'scripts/render-source-work-todos.mjs'
+      - 'scripts/derive-set-of-due-events.mjs'
       - 'test/render-source-observed-calendar.test.mjs'
+      - 'test/render-source-work-todos.test.mjs'
+      - 'test/derive-set-of-due-events.test.mjs'
       - 'package.json'
       - '.github/workflows/source-observed-calendar.yml'
   pull_request:
     paths:
       - 'scripts/render-source-observed-calendar.mjs'
+      - 'scripts/render-source-work-todos.mjs'
+      - 'scripts/derive-set-of-due-events.mjs'
       - 'test/render-source-observed-calendar.test.mjs'
+      - 'test/render-source-work-todos.test.mjs'
+      - 'test/derive-set-of-due-events.test.mjs'
       - 'package.json'
       - '.github/workflows/source-observed-calendar.yml'
   workflow_dispatch:
@@ -33,7 +41,11 @@ jobs:
       - name: Parse original calendar producer and receiving tests
         run: |
           node --check scripts/render-source-observed-calendar.mjs
+          node --check scripts/render-source-work-todos.mjs
+          node --check scripts/derive-set-of-due-events.mjs
           node --check test/render-source-observed-calendar.test.mjs
+          node --check test/render-source-work-todos.test.mjs
+          node --check test/derive-set-of-due-events.test.mjs
       - name: Run original iCalendar service's full native tests
         run: npm test
       - name: Verify public calendar source projection without a scheduler
@@ -53,5 +65,24 @@ jobs:
             if(value.text.includes("VALARM")||value.text.includes("ATTENDEE")) process.exit(3);
             console.log("Source-only RFC 5545 readout received: "+value.count+" event");
           '
+      - name: Receive RFC 5545 VTODO source-task contract with a realistic original Work identity
+        run: |
+          node --input-type=module <<'NODE'
+          import assert from "node:assert/strict";
+          import {renderSourceWorkTodos} from "./scripts/render-source-work-todos.mjs";
+          const id="ni:///sha-256;"+"A".repeat(43);
+          const value=renderSourceWorkTodos({at:"2026-10-24T17:00:00.000Z",work:[{
+            id,summary:"Receive original Work",description:"Still awaiting independent receipt",
+            sourceUrl:"https://github.com/red-cup-engineering/agent-organization-engine/issues/53",
+            observedAt:"2026-10-24T16:00:00.000Z",
+            due:{kind:"date-exclusive",value:"2026-10-26"},
+          }]});
+          assert.equal(value.count,1);
+          assert.deepEqual(value.sourceWorkIds,[id]);
+          assert.match(value.text,/BEGIN:VTODO\r\n/);
+          assert.match(value.text,/DUE;VALUE=DATE:20261026\r\n/);
+          assert.doesNotMatch(value.text,/COMPLETED:|STATUS:COMPLETED|VALARM/);
+          console.log("Source-only VTODO qualified; no original Work moved or money earned");
+          NODE
       - name: Preserve original receiving limit
-        run: echo 'Native source bytes and tests pass only for RFC 5545 output; no Group workspace installation, source-right attestation, legal deadline time, Work execution, customer contract, payment, or publisher enrollment was received.' >> "$GITHUB_STEP_SUMMARY"
+        run: echo 'Native source bytes and tests pass only for RFC 5545 output and source-level completion refusal; no Group workspace installation, source-right attestation, legal deadline time, Work execution, customer contract, payment, or publisher enrollment was received.' >> "$GITHUB_STEP_SUMMARY"

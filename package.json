@@ -13,7 +13,8 @@
   "exports": {
     "./derive-set-of-due-events": "./scripts/derive-set-of-due-events.mjs",
     "./expand-recurrence-rule": "./scripts/expand-recurrence-rule.mjs",
-    "./render-source-observed-calendar": "./scripts/render-source-observed-calendar.mjs"
+    "./render-source-observed-calendar": "./scripts/render-source-observed-calendar.mjs",
+    "./render-source-work-todos": "./scripts/render-source-work-todos.mjs"
   },
   "scripts": {
     "test": "node --test test/*.test.mjs"

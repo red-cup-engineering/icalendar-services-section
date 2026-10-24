@@ -121,3 +121,8 @@ export function renderSourceObservedCalendar({at,events}={}){
     text:body,
   });
 }
+
+// The same original RFC 5545 serializer owns TEXT escaping, octet-aware folding,
+// temporal admission and source URL safety for VEVENT and VTODO consumers.
+// Exposing pure helpers changes no established public event rendering.
+export { canonicalInstant, canonicalDate, safeText, sourceUrl, basicDate, basicUtc, escapeText, property };
